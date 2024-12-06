@@ -1,76 +1,141 @@
-import Navbar from '@/components/Navbar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Link } from 'react-router-dom'
-import React from 'react'
+import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup } from '@/components/ui/radio-group';
+import { setLoading, setUser } from '@/mangement/authSlice';
+import store from '@/mangement/store';
+import { USER_API_ENDPOINT } from '@/utility/const';
+import axios from 'axios';
+import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
-function Login() {
-  return (
-    <main>
-      <Navbar />
-      <div className="  font-Roboto h-screen flex items-center justify-center">
-        <form
-          action=""
-          className="w-1/2 border border-black p-2 rounded-md bg-gray-100 shadow-md"
-        >
-          <h1 className=" font-Roboto font-bold text-xl mb-4 text-center">Login</h1>
-        <div className="p-2">
-        <Label>Full Name: </Label>
-          <Input
-            type="text"
-            placeholder="Name"
-            className="text-gray-700 leading-tight focus:outline-none"
-          />
 
-          <Label>Email: </Label>
-          <Input
-            type="text"
-            placeholder="Email"
-            className="text-gray-700 leading-tight focus:outline-none"
-          />
+const Login = () => {
+    const [input, setInput] = useState({
+        email: "",
+        password: "",
+        role: "",
+    });
+    const { loading } = useSelector(store => store.auth);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const {user}=useSelector(store=>store.auth)
 
-          <Label>Phone Number: </Label>
-          <Input
-            type="tel"
-            placeholder="Name"
-            className="text-gray-700 leading-tight focus:outline-none"
-          />
-          <Label>Password: </Label>
-          <Input
-            type="password"
-            placeholder="Name"
-            className="text-gray-700 leading-tight focus:outline-none"
-          />
-         <span className="flex items-center caret-transparent font-bold justify-start gap-4 mt-4 mb-4">
-        <p className="flex  items-center gap-1">
-        <Input
-          type="radio"
-          name="role"
-          value ="Student"
-          className="cursor-pointer size-5"
-          />
-          <Label htmlFor="r1" > Student</Label>
-        </p>
-         <p className="flex items-center gap-1">
-         <Input
-          type="radio"
-          name="role"
-          value ="Recruiter"
-          className="cursor-pointer size-5"
-          />
-          <Label htmlFor="r2" > Recruiter</Label>
-         </p>
-         </span>
-         
+    const changeEventHandler = (e) => {
+        setInput({ ...input, [e.target.name]: e.target.value });
+    }
 
+    const submitHandler = async (e) => {
+        e.preventDefault();
+        try {
+            dispatch(setLoading(true));
+            const res = await axios.post(`${USER_API_ENDPOINT}/login`, input, {
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                withCredentials: true,
+            });
+            console.log(res.data);
+            if (res.data.success) {
+                dispatch(setUser(res.data));
+                console.log(res.data)
+                navigate("/");
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.log(error);
+            toast.error(error.response.data.message);
+        } finally {
+            dispatch(setLoading(false));
+        }
+    }
+    // useEffect(()=>{
+    //     if(user){
+    //         navigate("/");
+    //     }
+    // },[])
+    return (
+        <div>
+            <Navbar />
+            <div className='flex items-center justify-center max-w-7xl mx-auto'>
+                <form onSubmit={submitHandler} className='w-1/2 border border-gray-200 rounded-md p-4 my-10'>
+                    <h1 className='font-bold text-xl mb-5'>Login</h1>
+                    <div className='my-2'>
+                        <Label>Email</Label>
+                        <Input
+                            type="email"
+                            value={input.email}
+                            name="email"
+                            onChange={changeEventHandler}
+                            placeholder="Email"
+                        />
+                    </div>
+
+                    <div className='my-2'>
+                        <Label>Password</Label>
+                        <Input
+                            type="password"
+                            value={input.password}
+                            name="password"
+                            onChange={changeEventHandler}
+                            placeholder="password"
+                        />
+                    </div>
+                    <div className='flex items-center justify-between'>
+                    {/* <Label>Role:</Label> */}
+                    <div className="flex items-center gap-4 p-2">
+          <RadioGroup className="flex items-center gap-4 my-5">
+            <Label htmlFor="role">Role:</Label>
+            <label className="flex items-center gap-2">
+              <Input
+                type="radio"
+                name="role"
+                value="Student"
+                checked={input.role === "Student"}
+                onChange={changeEventHandler}
+                className="cursor-pointer"
+              />
+              <span>Student</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <Input
+                type="radio"
+                name="role"
+                value="Recruiter"
+                checked={input.role === "Recruiter"}
+                onChange={changeEventHandler}
+                className="cursor-pointer"
+              />
+              <span>Recruiter</span>
+            </label>
+            </RadioGroup>
+          </div>
+                    </div>
+                    {
+                    loading ? (
+                        <Button className="w-full my-4 flex items-center justify-center bg-[#003366] text-[#FFD700] border border-[#FFD700] px-4 py-2 rounded-md transition-all duration-300 hover:bg-[#FFD700] hover:text-[#003366] hover:border-[#003366] hover:shadow-lg active:bg-[#CCAC00] active:border-[#002244] active:shadow-inner">
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Please wait
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          className="w-full my-4 bg-[#003366] text-[#FFD700] border border-[#FFD700] px-4 py-2 rounded-md transition-all duration-300 hover:bg-[#FFD700] hover:text-[#003366] hover:border-[#003366] hover:shadow-lg active:bg-[#CCAC00] active:border-[#002244] active:shadow-inner"
+                        >
+                          Login
+                        </Button>
+                      )
+                      
+                    }
+                    <span className='text-sm'>Don't have an account? <Link to="/signup" className='text-blue-600'>Signup</Link></span>
+                </form>
+            </div>
         </div>
-      <Button type="submit" className="w-full m-2  ">Login</Button>
-          <span className="text-red text-semibold"> Does not Have an Account <Link to="/signup" className="text-blue-600">Sign up</Link></span>
-        </form>
-      </div>
-    </main>
-  )
+    )
 }
 
 export default Login

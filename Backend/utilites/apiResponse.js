@@ -10,7 +10,8 @@ class apiResponse {
         this.status = status;
         this.message = message;
         this.data = data;
-        this.success = status < 400; // Determine success based on status code
+        this.success = success;
+        // this.success = status < 400; // Determine success based on status code
         this.cookies = cookies; // Store cookies for applying later
         this.meta = meta; // Store additional metadata
     }

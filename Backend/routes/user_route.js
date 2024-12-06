@@ -1,11 +1,12 @@
 import { Router } from "express";
 import {login, logout, register, updateProfile} from "../controllers/user.js"
 import isAuthenticated from "../middleware/isAuthenticated.js";
+import { singleUpload } from "../middleware/multer.js";
 const router=Router()
 
 router
 .route("/register")
-.post(register)
+.post(singleUpload,register)
 
 router
 .route("/login")

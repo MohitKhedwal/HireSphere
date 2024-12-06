@@ -31,7 +31,7 @@ const jobSchema= new Schema({
         required:true,
     },
     opening:{
-        type:Number,
+        type:String,
         required:true
     },
     companyId:{

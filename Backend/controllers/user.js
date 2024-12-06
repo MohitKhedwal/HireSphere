@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 async function register(req, res) {
   try {
     const { fullname, email, phoneno, password, role } = req.body;
+    console.log(req.body);
     if (!fullname || !email || !phoneno || !password || !role) {
       return res.status(400).json(
         new apiResponse({
@@ -48,79 +49,168 @@ async function register(req, res) {
     );
   }
 }
+
+
 async function login(req, res) {
   try {
-    const { email, password, phoneno,role } = req.body;
-    if ( !password || (!email && !phoneno) || !role  ) {
-      return res.status(500).json(
+    const { email, password, role } = req.body;
+    console.log("Request Body:", req.body);
+
+    // Check if all fields are provided
+    if (!password || !email || !role) {
+      return res.status(400).json(
         new apiResponse({
-          message: "Fill all fields",
-          sucess: false,
+          message: "Please fill all fields",
+          success: false,
         })
       );
     }
-    let user = await User.findOne({
-      $or: [{ email: email }, { phoneno: phoneno }]
-    });
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+    console.log("User  found for email:", email);
     if (!user) {
       return res.status(404).json(
         new apiResponse({
-          message: "Not user ",
-          sucess: false,
+          message: "User not found",
+          success: false,
         })
       );
     }
+
+    // Check if password is correct
     const isPasswordMatch = await bcrypt.compare(password, user.password);
+    console.log("Password Match:", isPasswordMatch);
     if (!isPasswordMatch) {
-      return res.status(500).json(
+      return res.status(401).json(
         new apiResponse({
-          message: "Wrong password",
-          sucess: false,
+          message: "Incorrect password",
+          success: false,
         })
       );
     }
-    if (role != user.role) {
-      return res.status(500).json(
+    console.log("Role Match:", role);
+    // Check if role matches
+    if (role !== user.role) {
+      return res.status(401).json(
         new apiResponse({
-          message: "Wrong role",
-          sucess: false,
+          message: "Role mismatch",
+          success: false,
         })
       );
     }
-    const token =  await tokenGenerator(user._id);
+
+    // Generate token
+    const token = await tokenGenerator(user._id);
+
+    // Prepare user data to send in response
     user = {
       _id: user._id,
       fullname: user.fullname,
       email: user.email,
       phoneno: user.phoneno,
       role: user.role,
-      profile: user.profile
-  }
-    
-    
-    return res.status(200).cookie(
-      "token",token,{
-        maxAge: 1 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        sameSite: "strict",
-      }
-    ).json(
+      profile: user.profile,
+    };
+
+    // Send token in cookie and return user info
+    return res.status(200).cookie("token", token, {
+      maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day expiration
+      httpOnly: true,
+      sameSite: "strict",
+    }).json(
       new apiResponse({
+        data:user,
         user,
-        message: "Login Successfull",
-        sucess:true
+        message: "Loginnnnnn successful",
+        success: true
       })
     );
   } catch (e) {
-    console.log(e)
+    console.error(e);
     return res.status(500).json(
       new apiResponse({
-        message: "ERROR In user Login",
-        sucess: false,
+        message: "Error in user login",
+        success: false,
       })
     );
   }
 }
+
+// async function login(req, res) {
+//   try {
+//     const { email, password,role } = req.body;
+//     if ( !password || !email  || !role  ) {
+//       return res.status(400).json(
+//         new apiResponse({
+//           message: "Fill all fields",
+//           sucess: false,
+//         })
+//       );
+//     }
+//     let user = await User.findOne({
+//        email 
+//     });
+//     if (!user) {
+//       return res.status(404).json(
+//         new apiResponse({
+//           message: "Not user ",
+//           sucess: false,
+//         })
+//       );
+//     }
+//     const isPasswordMatch = await bcrypt.compare(password, user.password);
+//     if (!isPasswordMatch) {
+//       return res.status(500).json(
+//         new apiResponse({
+//           message: "Wrong password",
+//           sucess: false,
+//         })
+//       );
+//     }
+//     if (role !== user.role) {
+//       return res.status(401).json(
+//         new apiResponse({
+//           // data:error,
+//           message: "Wrong role",
+//           sucess: false,
+//         })
+//       );
+//     }
+//     const token =  await tokenGenerator(user._id);
+//     user = {
+//       _id: user._id,
+//       fullname: user.fullname,
+//       email: user.email,
+//       phoneno: user.phoneno,
+//       role: user.role,
+//       profile: user.profile
+//   }
+    
+    
+//     return res.status(200).cookie(
+//       "token",token,{
+//         maxAge: 1 * 24 * 60 * 60 * 1000,
+//         httpOnly: true,
+//         sameSite: "strict",
+//       }
+//     ).json(
+//       new apiResponse({
+//         user,
+//         message: "Login Successfull",
+//         sucess:true
+//       })
+//     );
+//   } catch (e) {
+//     console.log(e)
+//     return res.status(500).json(
+//       new apiResponse({
+//         message: "ERROR In user Login",
+//         sucess: false,
+//       })
+//     );
+//   }
+// }
 
 async function logout(req, res) {
   try {

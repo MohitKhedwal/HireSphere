@@ -1,17 +1,15 @@
-import React from "react";
+   import React from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
-import { BusFront, LogOut, User2 } from "lucide-react";
+import { Briefcase, BusFront, Home, LogOut, Search, User2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import Hire from "../assets/H.png"
+import { useSelector } from "react-redux";
 
 function Navbar() {
-  // make blinking line on text disable caret-transparent
-    const user=false
-    // bg-[#003366]
-    // text-[#FFD700]
-    // button-[#FFDA6B]
+  const {user}=useSelector(store=>store.auth)
+
 
   return (
     <>
@@ -25,13 +23,13 @@ function Navbar() {
         </div>
         <div className=" flex gap-12   font-2xl items-center  font-semibold">
           <ul className=" flex gap-x-4 font-2xl cursor-pointer  ">
-            <li>Home</li>
-            <li>Jobs</li>
-            <li>Browse</li>
+            <li > <Link to="/" >  <span className=" flex gap-1"><Home/>  Home</span> </Link></li>
+            <li>   <Link to="/jobs">  <span className=" flex gap-1"><Briefcase/> Jobs</span> </Link> </li>
+            <li><Link to ="/browse">  <span className=" flex gap-1"><Search/>  Browse</span></Link> </li>
           </ul>
         </div>
         {
-            user?(
+           user?(
                 <Popover>
           <PopoverTrigger>
             <Avatar className="cursor-pointer">
@@ -56,7 +54,7 @@ function Navbar() {
                 className= "bg-[#003366] text-[#FFD700] border border-[#FFD700] px-4 py-2 rounded transition-all duration-300 hover:bg-[#FFD700] hover:text-[#003366] hover:border-[#003366] hover:shadow-lg active:bg-[#CCAC00] active:border-[#002244] active:shadow-inner w-28 gap-2"
                 variant="outline"
               >
-                View profile
+          <Link to ="/profile">      View profile </Link>
               </Button>
               </p>
 
@@ -87,3 +85,9 @@ function Navbar() {
 }
 
 export default Navbar;
+
+  // make blinking line on text disable caret-transparent
+    // const user=true
+    // bg-[#003366]
+    // text-[#FFD700]
+    // button-[#FFDA6B]
